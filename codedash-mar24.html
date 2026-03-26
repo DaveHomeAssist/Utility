@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Dashboard — Mar 24, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #12131a;
+    --surface-raised: #1a1b24;
+    --border: #2a2b36;
+    --text: #e8e9ed;
+    --text-dim: #7a7d8e;
+    --accent: #6ee7b7;
+    --accent-dim: rgba(110,231,183,0.1);
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.1);
+    --blue: #7dd3fc;
+    --blue-dim: rgba(125,211,252,0.1);
+    --pink: #f0abfc;
+    --pink-dim: rgba(240,171,252,0.1);
+    --yellow: #fde68a;
+    --yellow-dim: rgba(253,230,138,0.1);
+    --red: #fca5a5;
+    --red-dim: rgba(252,165,165,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Grid background */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(110,231,183,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,231,183,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px;
+    position: relative;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeSlideDown 0.6s ease-out;
+  }
+
+  .header-left h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-left .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(110,231,183,0.15);
+  }
+
+  .pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideUp 0.5s ease-out both;
+  }
+
+  .stat-card:nth-child(1) { animation-delay: 0.1s; }
+  .stat-card:nth-child(2) { animation-delay: 0.15s; }
+  .stat-card:nth-child(3) { animation-delay: 0.2s; }
+  .stat-card:nth-child(4) { animation-delay: 0.25s; }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .stat-card.green::after { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card.orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
+  .stat-card.blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
+  .stat-card.pink::after { background: linear-gradient(90deg, var(--pink), transparent); }
+
+  .stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .stat-value {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .stat-card.green .stat-value { color: var(--accent); }
+  .stat-card.orange .stat-value { color: var(--orange); }
+  .stat-card.blue .stat-value { color: var(--blue); }
+  .stat-card.pink .stat-value { color: var(--pink); }
+
+  .stat-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  /* Two-column layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    animation: fadeSlideUp 0.6s ease-out both;
+    animation-delay: 0.3s;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title .icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  /* Project list */
+  .project-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(42,43,54,0.6);
+    transition: all 0.2s;
+  }
+
+  .project-item:last-child { border-bottom: none; }
+
+  .project-item:hover {
+    padding-left: 8px;
+  }
+
+  .project-name {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .project-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .project-files {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .project-bar-wrap {
+    width: 100px;
+    height: 6px;
+    background: rgba(42,43,54,0.8);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .project-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease-out;
+  }
+
+  /* File type breakdown */
+  .file-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ft-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-raised);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .ft-item:hover {
+    background: rgba(42,43,54,0.9);
+    transform: translateX(2px);
+  }
+
+  .ft-ext {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 40px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .ft-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin-left: auto;
+    color: var(--text-dim);
+  }
+
+  .ft-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  /* Full-width bottom section */
+  .full-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    animation: fadeSlideUp 0.6s ease-out both;
+    animation-delay: 0.4s;
+  }
+
+  .repo-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .repo-folder {
+    padding: 16px;
+    background: var(--surface-raised);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .repo-folder:hover {
+    border-color: var(--border);
+    transform: translateY(-2px);
+  }
+
+  .repo-folder.active {
+    border-color: rgba(110,231,183,0.3);
+    background: var(--accent-dim);
+  }
+
+  .folder-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .folder-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .folder-count {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* Animations */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(110,231,183,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(110,231,183,0); }
+  }
+
+  @keyframes barGrow {
+    from { width: 0 !important; }
+  }
+
+  .bar-animate {
+    animation: barGrow 1.2s ease-out;
+  }
+
+  /* Activity timeline */
+  .timeline {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 80px;
+    padding-top: 16px;
+  }
+
+  .timeline-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    min-width: 4px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .timeline-bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.05);
+    transform-origin: bottom;
+  }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .timeline-labels span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+    .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Code Dashboard</h1>
+      <div class="subtitle">~/Desktop/Code &mdash; daily development snapshot</div>
+    </div>
+    <div class="header-right">
+      <div class="date-badge"><span class="pulse"></span>Tue, Mar 24 2026</div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card green">
+      <div class="stat-label">Projects Touched</div>
+      <div class="stat-value">8</div>
+      <div class="stat-detail">of 27 active projects</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Files Changed</div>
+      <div class="stat-value">395</div>
+      <div class="stat-detail">across all projects today</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">File Types</div>
+      <div class="stat-value">17</div>
+      <div class="stat-detail">.js .png .md .html .jsx &hellip;</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-label">Hot Project</div>
+      <div class="stat-value" style="font-size:28px;">garden-os</div>
+      <div class="stat-detail">273 files &mdash; 69% of today's changes</div>
+    </div>
+  </div>
+
+  <!-- Two Columns -->
+  <div class="main-grid">
+
+    <!-- Projects touched today -->
+    <div class="panel">
+      <div class="panel-title"><span class="icon" style="background:var(--accent-dim); color:var(--accent);">▸</span> Projects Touched Today</div>
+
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--accent);"></span>garden-os</div>
+        <div class="project-files">273 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:100%; background:var(--accent);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--blue);"></span>prompt-lab-main-clean</div>
+        <div class="project-files">87 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:32%; background:var(--blue);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--orange);"></span>dave-llm</div>
+        <div class="project-files">23 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:8%; background:var(--orange);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--pink);"></span>readout</div>
+        <div class="project-files">6 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:3%; background:var(--pink);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--yellow);"></span>shieldbox-quote-request</div>
+        <div class="project-files">3 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:2%; background:var(--yellow);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--red);"></span>catering</div>
+        <div class="project-files">1 file</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:1%; background:var(--red);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--text-dim);"></span>contractor</div>
+        <div class="project-files">1 file</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:1%; background:var(--text-dim);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--text-dim);"></span>freelance</div>
+        <div class="project-files">1 file</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:1%; background:var(--text-dim);"></div></div>
+      </div>
+    </div>
+
+    <!-- File type breakdown -->
+    <div class="panel" style="animation-delay: 0.35s;">
+      <div class="panel-title"><span class="icon" style="background:var(--blue-dim); color:var(--blue);">◆</span> File Types Modified</div>
+      <div class="file-type-grid">
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--yellow-dim); color:var(--yellow);">.js</span>
+          <span class="ft-label">JavaScript</span>
+          <span class="ft-count">106</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--pink-dim); color:var(--pink);">.png</span>
+          <span class="ft-label">Images</span>
+          <span class="ft-count">95</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--blue-dim); color:var(--blue);">.md</span>
+          <span class="ft-label">Markdown</span>
+          <span class="ft-count">71</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--orange-dim); color:var(--orange);">.html</span>
+          <span class="ft-label">HTML</span>
+          <span class="ft-count">30</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--accent-dim); color:var(--accent);">.jsx</span>
+          <span class="ft-label">React</span>
+          <span class="ft-count">23</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--red-dim); color:var(--red);">.json</span>
+          <span class="ft-label">Config</span>
+          <span class="ft-count">19</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--yellow-dim); color:var(--yellow);">.jpg</span>
+          <span class="ft-label">Photos</span>
+          <span class="ft-count">10</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--blue-dim); color:var(--blue);">.txt</span>
+          <span class="ft-label">Plain text</span>
+          <span class="ft-count">8</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--pink-dim); color:var(--pink);">.css</span>
+          <span class="ft-label">Styles</span>
+          <span class="ft-count">6</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--accent-dim); color:var(--accent);">.py</span>
+          <span class="ft-label">Python</span>
+          <span class="ft-count">4</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--orange-dim); color:var(--orange);">.svg</span>
+          <span class="ft-label">Vector</span>
+          <span class="ft-count">2</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--red-dim); color:var(--red);">.mp4</span>
+          <span class="ft-label">Video</span>
+          <span class="ft-count">3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-width: All 27 Active Projects -->
+  <div class="full-panel">
+    <div class="panel-title"><span class="icon" style="background:var(--orange-dim); color:var(--orange);">⊞</span> All Active Projects <span style="font-weight:400; text-transform:none; letter-spacing:0; margin-left:8px; font-size:12px; color:var(--text-dim);">— 27 projects in 10-active-projects/</span></div>
+    <div class="repo-overview" id="repoGrid"></div>
+  </div>
+
+</div>
+
+<script>
+const projects = [
+  { name: 'garden-os', touched: 273 },
+  { name: 'prompt-lab-main-clean', touched: 87 },
+  { name: 'dave-llm', touched: 23 },
+  { name: 'readout', touched: 6 },
+  { name: 'shieldbox-quote-request', touched: 3 },
+  { name: 'catering', touched: 1 },
+  { name: 'contractor', touched: 1 },
+  { name: 'freelance', touched: 1 },
+  { name: 'curl-plan', touched: 0 },
+  { name: 'dave-homeassist', touched: 0 },
+  { name: 'digital-storefront', touched: 0 },
+  { name: 'festival-atlas', touched: 0 },
+  { name: 'freelance-landing', touched: 0 },
+  { name: 'gemini-api-cost-calculator', touched: 0 },
+  { name: 'graph-explorer', touched: 0 },
+  { name: 'metagrid', touched: 0 },
+  { name: 'metagrid-fig4-handshake-simulator', touched: 0 },
+  { name: 'mlb-ballparks-quest', touched: 0 },
+  { name: 'nesy-vercel-preview', touched: 0 },
+  { name: 'new-land-pages', touched: 0 },
+  { name: 'notion-widgets', touched: 0 },
+  { name: 'quest-platform', touched: 0 },
+  { name: 'sdlc-tool-stack-map', touched: 0 },
+  { name: 'trailkeeper', touched: 0 },
+  { name: 'tts-desktop-app', touched: 0 },
+  { name: 'utility', touched: 0 },
+  { name: 'New Folder With Items', touched: 0 },
+];
+
+const grid = document.getElementById('repoGrid');
+projects.forEach((p, i) => {
+  const el = document.createElement('div');
+  el.className = 'repo-folder' + (p.touched > 0 ? ' active' : '');
+  el.style.animationDelay = (0.4 + i * 0.02) + 's';
+  el.innerHTML = `
+    <div class="folder-icon">${p.touched > 0 ? '📂' : '📁'}</div>
+    <div class="folder-name">${p.name}</div>
+    <div class="folder-count">${p.touched > 0 ? p.touched + ' files today' : 'idle'}</div>
+  `;
+  grid.appendChild(el);
+});
+</script>
+</body>
+</html>

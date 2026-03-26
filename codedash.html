@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Dashboard &mdash; Wed, Mar 25, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0f; --surface: #12131a; --surface-raised: #1a1b24;
+    --border: #2a2b36; --text: #e8e9ed; --text-dim: #7a7d8e;
+    --accent: #6ee7b7; --accent-dim: rgba(110,231,183,0.1);
+    --orange: #fb923c; --orange-dim: rgba(251,146,60,0.1);
+    --blue: #7dd3fc; --blue-dim: rgba(125,211,252,0.1);
+    --pink: #f0abfc; --pink-dim: rgba(240,171,252,0.1);
+    --yellow: #fde68a; --yellow-dim: rgba(253,230,138,0.1);
+    --red: #fca5a5; --red-dim: rgba(252,165,165,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; }
+  .grid-bg { position: fixed; inset: 0; background-image: linear-gradient(rgba(110,231,183,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(110,231,183,0.03) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 40px 32px; position: relative; }
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); animation: fadeSlideDown 0.6s ease-out; }
+  .header-left h1 { font-size: 42px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header-left .subtitle { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 13px; margin-top: 8px; letter-spacing: 0.5px; }
+  .date-badge { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent); background: var(--accent-dim); padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(110,231,183,0.15); }
+  .pulse { display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-right: 8px; animation: pulse 2s ease-in-out infinite; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; overflow: hidden; animation: fadeSlideUp 0.5s ease-out both; }
+  .stat-card:nth-child(1) { animation-delay: 0.1s; } .stat-card:nth-child(2) { animation-delay: 0.15s; } .stat-card:nth-child(3) { animation-delay: 0.2s; } .stat-card:nth-child(4) { animation-delay: 0.25s; }
+  .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.green::after { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card.orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
+  .stat-card.blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
+  .stat-card.pink::after { background: linear-gradient(90deg, var(--pink), transparent); }
+  .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+  .stat-value { font-size: 40px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .stat-card.green .stat-value { color: var(--accent); } .stat-card.orange .stat-value { color: var(--orange); } .stat-card.blue .stat-value { color: var(--blue); } .stat-card.pink .stat-value { color: var(--pink); }
+  .stat-detail { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+  .panel, .full-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; animation: fadeSlideUp 0.6s ease-out both; animation-delay: 0.3s; }
+  .full-panel { margin-bottom: 40px; }
+  .panel-title { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-dim); margin-bottom: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .panel-title .icon { width: 18px; height: 18px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; }
+  .project-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(42,43,54,0.6); transition: all 0.2s; }
+  .project-item:last-child { border-bottom: none; }
+  .project-item:hover { padding-left: 8px; }
+  .project-name { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+  .project-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .project-files { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .project-bar-wrap { width: 120px; height: 4px; background: var(--surface-raised); border-radius: 2px; overflow: hidden; }
+  .project-bar { height: 100%; border-radius: 2px; }
+  .file-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ft-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface-raised); transition: all 0.2s; }
+  .ft-item:hover { transform: translateX(4px); }
+  .ft-ext { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+  .ft-label { font-size: 12px; color: var(--text-dim); flex: 1; }
+  .ft-count { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+  .repo-overview { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .repo-folder { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; padding: 16px 14px; text-align: center; transition: all 0.2s; cursor: default; animation: fadeSlideUp 0.4s ease-out both; }
+  .repo-folder:hover { transform: translateY(-2px); border-color: var(--border); }
+  .repo-folder.active { border-color: rgba(110,231,183,0.3); background: var(--accent-dim); }
+  .folder-icon { font-size: 20px; margin-bottom: 8px; }
+  .folder-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .folder-count { font-size: 11px; color: var(--text-dim); }
+  .footer { text-align: center; padding: 32px 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; }
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeSlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(110,231,183,0.4); } 50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(110,231,183,0); } }
+  @keyframes barGrow { from { width: 0 !important; } }
+  .bar-animate { animation: barGrow 1.2s ease-out; }
+  @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .main-grid { grid-template-columns: 1fr; } .header { flex-direction: column; align-items: flex-start; gap: 16px; } }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Code Dashboard</h1>
+      <div class="subtitle">~/Desktop/Code &mdash; daily development snapshot</div>
+    </div>
+    <div class="header-right">
+      <div class="date-badge"><span class="pulse"></span>Wed, Mar 25, 2026</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card green">
+      <div class="stat-label">Projects Touched</div>
+      <div class="stat-value">2</div>
+      <div class="stat-detail">of 26 active projects</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Files Changed</div>
+      <div class="stat-value">7</div>
+      <div class="stat-detail">5 commits today</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">File Types</div>
+      <div class="stat-value">3</div>
+      <div class="stat-detail">.md .html .js</div>
+    </div>
+    <div class="stat-card pink">
+      <div class="stat-label">Hot Project</div>
+      <div class="stat-value" style="font-size:28px;">garden-os</div>
+      <div class="stat-detail">4 files &mdash; 57% of today</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-title"><span class="icon" style="background:var(--accent-dim); color:var(--accent);">▸</span> Projects Touched Today</div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--accent);"></span>garden-os</div>
+        <div class="project-files">4 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:100%; background:var(--accent);"></div></div>
+      </div>
+      <div class="project-item">
+        <div class="project-name"><span class="project-dot" style="background:var(--blue);"></span>deckforge</div>
+        <div class="project-files">3 files</div>
+        <div class="project-bar-wrap"><div class="project-bar bar-animate" style="width:75%; background:var(--blue);"></div></div>
+      </div>
+    </div>
+    <div class="panel" style="animation-delay: 0.35s;">
+      <div class="panel-title"><span class="icon" style="background:var(--blue-dim); color:var(--blue);">◆</span> File Types Modified</div>
+      <div class="file-type-grid">
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--blue-dim); color:var(--blue);">.md</span>
+          <span class="ft-label">Markdown</span>
+          <span class="ft-count">4</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--orange-dim); color:var(--orange);">.html</span>
+          <span class="ft-label">HTML</span>
+          <span class="ft-count">2</span>
+        </div>
+        <div class="ft-item">
+          <span class="ft-ext" style="background:var(--yellow-dim); color:var(--yellow);">.js</span>
+          <span class="ft-label">JavaScript</span>
+          <span class="ft-count">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="full-panel">
+    <div class="panel-title"><span class="icon" style="background:var(--orange-dim); color:var(--orange);">⊞</span> All Active Projects <span style="font-weight:400; text-transform:none; letter-spacing:0; margin-left:8px; font-size:12px; color:var(--text-dim);">&mdash; 26 projects in 10-active-projects/</span></div>
+    <div class="repo-overview" id="repoGrid"></div>
+  </div>
+
+  <div class="footer">generated by dashboardSync.mjs &mdash; Wednesday, March 25, 2026 at 3:18 AM</div>
+</div>
+
+<script>
+const projects = [{"name":"garden-os","touched":4},{"name":"deckforge","touched":3},{"name":"catering","touched":0},{"name":"contractor","touched":0},{"name":"curl-plan","touched":0},{"name":"dave-homeassist","touched":0},{"name":"dave-llm","touched":0},{"name":"digital-storefront","touched":0},{"name":"festival-atlas","touched":0},{"name":"freelance","touched":0},{"name":"freelance-landing","touched":0},{"name":"gemini-api-cost-calculator","touched":0},{"name":"graph-explorer","touched":0},{"name":"metagrid","touched":0},{"name":"metagrid-fig4-handshake-simulator","touched":0},{"name":"mlb-ballparks-quest","touched":0},{"name":"nesy-vercel-preview","touched":0},{"name":"new-land-pages","touched":0},{"name":"notion-widgets","touched":0},{"name":"prompt-lab-main-clean","touched":0},{"name":"quest-platform","touched":0},{"name":"readout","touched":0},{"name":"sdlc-tool-stack-map","touched":0},{"name":"shieldbox-quote-request","touched":0},{"name":"trailkeeper","touched":0},{"name":"utility","touched":0}];
+const grid = document.getElementById('repoGrid');
+projects.forEach((p, i) => {
+  const el = document.createElement('div');
+  el.className = 'repo-folder' + (p.touched > 0 ? ' active' : '');
+  el.style.animationDelay = (0.4 + i * 0.02) + 's';
+  el.innerHTML = `
+    <div class="folder-icon">${p.touched > 0 ? '📂' : '📁'}</div>
+    <div class="folder-name">${p.name}</div>
+    <div class="folder-count">${p.touched > 0 ? p.touched + ' files today' : 'idle'}</div>
+  `;
+  grid.appendChild(el);
+});
+</script>
+</body>
+</html>
