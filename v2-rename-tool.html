@@ -1139,7 +1139,19 @@ Return ONLY the title in a code block.`,
             sessionHistory.forEach((item, i) => {
                 const el = document.createElement('div');
                 el.className = 'history-item';
-                el.innerHTML = `<span class="h-project">${item.badge}</span><span class="h-title">${item.title}</span><button class="h-copy" onclick="copyHistoryItem(${i},this)">copy</button>`;
+                const badge = document.createElement('span');
+                badge.className = 'h-project';
+                badge.textContent = item.badge;
+                const title = document.createElement('span');
+                title.className = 'h-title';
+                title.textContent = item.title;
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'h-copy';
+                copyBtn.textContent = 'copy';
+                copyBtn.addEventListener('click', () => copyHistoryItem(i, copyBtn));
+                el.appendChild(badge);
+                el.appendChild(title);
+                el.appendChild(copyBtn);
                 list.appendChild(el);
             });
         }
